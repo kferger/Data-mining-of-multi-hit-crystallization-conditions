@@ -1,0 +1,2 @@
+# Data-mining-of-multi-hit-crystallization-conditions
+This series of scripts were created in an effort to mine, organize, rename, and process crystallization cocktail data from the PDB and the xtuition database (xtuition.org). xtuition-api-final-extraction.py also employs software called cockatoo, which calculates a distance metric between two chemical cocktails or chemical screens, and outputs a distance score on a scale of 0-1.
