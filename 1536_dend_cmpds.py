@@ -5,6 +5,10 @@ import pandas as pd
 from itertools import combinations_with_replacement, repeat
 import numpy as np
 
+"""
+Counts and ranks compounds by their occurrance per dendrogram cluster.  Reads in hit cocktails and outputs ranked list of compounds.
+"""
+
 os.environ['XTUITION_TOKEN'] = '9d89e79c-ed4d-11e5-8042-00270e10b7a7'
 ROOT_PATH = "/projects/academic/esnell/kferger"
 
