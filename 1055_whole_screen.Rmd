@@ -1,0 +1,48 @@
+---
+title: "1055_whole_screen"
+author: "Kailey Ferger"
+date: "7/29/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+whole_screen <- read.csv("/Users/kaileyferger/Downloads/1055_whole_screen.csv", header = TRUE, row.names = 1, sep = ",")
+dend <- whole_screen %>% dist %>% hclust %>% as.dendrogram %>% color_branches(k=10)
+par(mar = rep(0,4))
+```
+```{r}
+circlize_dendrogram(dend, facing = "outside", labels = FALSE)
+title("Clustering of whole-screen sample 1055")
+#pdf(file = "/Users/kaileyferger/Downloads/1055_wholescreen_dend.pdf")
+```
+```{r}
+clust <- whole_screen %>% dist %>% hclust
+cut <- as.data.frame(cutree(clust, k=10))
+label_order <- order.dendrogram(dend)
+whole_screen_reorder <- whole_screen[label_order, label_order]
+```
+```{r}
+ct_1055 <- read.csv("/Users/kaileyferger/Downloads/X000008736.csv", header = TRUE, row.names = 1, sep = ",")
+hits <- rownames(ct_1055)
+cut_hits <- vector()
+for (i in 1:length(hits)) {
+  cut_hits <- c(cut_hits, which(rownames(cut) == hits[i]))
+}
+cut_hit_rows <- as.numeric(cut[cut_hits, ])
+cut_hits1 <- cbind(hits, cut_hit_rows)
+```
+```{r}
+cut_cluster <- which(cut$`cutree(clust, k = 10)` == 10)
+```
+```{r}
+#write.csv(cut, file = "/Users/kaileyferger/Downloads/1055_cut.csv", sep = ",", row.names = TRUE, col.names = TRUE)
+write.csv(cut_hits1, file = "/Users/kaileyferger/Downloads/1055_cut_hits.csv", sep = ",", row.names = FALSE, col.names = TRUE)
+```
+
+

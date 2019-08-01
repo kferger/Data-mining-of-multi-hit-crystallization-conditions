@@ -1,0 +1,73 @@
+---
+title: "within_screen1443"
+author: "Kailey Ferger"
+date: "7/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+if(!"RCy3" %in% installed.packages()){
+    install.packages("BiocManager")
+    BiocManager::install("RCy3")
+}
+library(RCy3)
+
+if(!"ndexr" %in% installed.packages()){
+    install.packages("BiocManager")
+    BiocManager::install("ndexr")
+}
+library(ndexr)
+```
+```{r}
+s_1055 <- read.csv("/Users/kaileyferger/Downloads/1055.csv", header=TRUE, row.names = 1, sep = ",")
+```
+```{r}
+xyz <- t(combn(colnames(s_1055), 2))
+edges <- data.frame(xyz, dist=s_1055[xyz])
+```
+
+```{r}
+edges <- NULL
+for (i in 1:nrow(s_1055)) {
+    for (j in 1:ncol(s_1055)) {
+        val <- as.numeric(as.character(s_1055[i,j]))
+        if (is.na(val)){
+            next
+        }
+        edges <- rbind(edges, c(rownames(s_1055)[i], rownames(s_1055)[j], val))
+    }
+}
+```
+```{r}
+rm_v <- c(56, 111, 166, 221, 276, 331, 386, 441, 496, 551, 606, 661, 716, 771, 826, 881, 936, 991, 1046, 1101, 1156, 1211, 1266, 1321, 1376, 1431, 1486, 1541, 1596, 1651, 1706, 1761, 1816, 1871, 1926, 1981, 2036, 2091, 2146, 2201, 2256, 2311, 2366, 2421, 2476, 2531, 2586, 2641, 2696, 2751, 2806, 2861, 2916, 2971)
+edges_filter <- edges[-rm_v,]
+
+```
+
+```{r}
+colnames(edges) <- c('node1', 'node2', 'value')
+write.table(edges, '/Users/kaileyferger/Downloads/1055_edges.txt', row.names=FALSE, quote=FALSE, sep='\t')
+```
+```{r}
+dist_3D3N_1443 <- read.csv('/Users/kaileyferger/Downloads/3D3N-1443-dist.csv', header = TRUE, sep = ",")
+```
+```{r}
+library(ggplot2)
+ggplot(dist_3D3N_1443, aes(x,y)) + geom_histogram() + scale_x_continuous("Distance", breaks = seq(0,1,by = 0.05)) + scale_y_continuous("Count", breaks = seq(0,100,by = 10))
+```
+
+```{r}
+library(ggplot2)
+ggplot(s_1443, aes(x=colnames(s_1443)) + geom_histogram() + scale_x_continuous("Distance", breaks = seq(0,1,by = 0.05)) + scale_y_continuous("Count", breaks = seq(0,100,by = 10))
+
+
+```
+
+
+

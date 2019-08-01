@@ -1,0 +1,98 @@
+---
+title: "hclust-vis-1055"
+author: "Kailey Ferger"
+date: "7/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+#fingerprint distance clustering 
+fp_1055 <- read.csv("/Users/kaileyferger/Downloads/ck1055_fp_dist.csv", header = TRUE, row.names = 1, sep = ",")
+fp_1055 <- as.matrix(fp_1055, dimnames=list(fp_1055[0,2:ncol(fp_1055)], fp_1055[0,2:ncol(fp_1055)]))
+
+ct_1055 <- read.csv("/Users/kaileyferger/Downloads/X000008736.csv", header = TRUE, row.names = 1, sep = ",")
+ct_1055 <- as.matrix(ct_1055, dimnames=list(ct_1055[0,2:ncol(ct_1055)], ct_1055[0,2:ncol(ct_1055)]))
+
+fp_1055_dist <- dist(fp_1055, method = "euclidean")
+fp_1055_clust <- hclust(fp_1055_dist, method = "average")
+```
+```{r}
+dend_fp_1055 <- as.dendrogram(fp_1055_clust)
+col_dend_fp_1055 <- color_branches(dend_fp_1055, k = 5)
+dend_1055_fp_labels <- order.dendrogram(col_dend_fp_1055)
+plot(col_dend_fp_1055, main = "Sample 1055 cocktails")
+```
+```{r}
+ct_1055_reorder <- ct_1055[dend_1055_fp_labels, dend_1055_fp_labels]
+mat_ct_1055_reorder <- as.matrix(ct_1055_reorder)
+sim_fp_mat <- 1-mat_ct_1055_reorder
+```
+
+
+```{r}
+row_fp_1055_dend <- as.dendrogram(hclust(dist(fp_1055, method = "minkowski")), method = "average")
+row_fp_1055_dend <- color_branches(row_fp_1055_dend, k=4)
+#ha <- HeatmapAnnotation(summary = anno_summary(height = unit(4, "cm")))
+Heatmap(sim_fp_mat, name = "distance score", cluster_rows = row_fp_1055_dend, cluster_columns = row_fp_1055_dend, row_dend_reorder = FALSE, column_dend_reorder = FALSE, column_title = "Sample 1055 cocktails, fingerprint distance clustering")
+```
+
+
+
+```{r}
+#cockatoo distance clustering 
+
+ct_1055_dist <- dist(ct_1055, method = "euclidean")
+ct_1055_clust <- hclust(ct_1055_dist, method = "average")
+
+dend_obj_1055 <- as.dendrogram(ct_1055_clust)
+col_dend_1055 <- color_branches(dend_obj_1055, k = 5)
+dend_1055_labels <- order.dendrogram(col_dend_1055)
+plot(col_dend_1055, main = "Sample 1055 cocktails")
+```
+```{r}
+ck_1055_reorder <- ct_1055[dend_1055_labels, dend_1055_labels]
+mat_1055_reorder <- as.matrix(ck_1055_reorder)
+sim_ct_mat <- 1-mat_1055_reorder
+```
+```{r}
+row_1055_dend <- as.dendrogram(hclust(dist(ct_1055, method = "minkowski")), method = "average")
+row_1055_dend <- color_branches(row_1055_dend, k=4)
+#ha <- HeatmapAnnotation(summary = anno_summary(height = unit(4, "cm")))
+Heatmap(sim_ct_mat, name = "distance score", cluster_rows = row_1055_dend, cluster_columns = row_1055_dend, row_dend_reorder = FALSE, column_dend_reorder = FALSE, column_title = "Sample 1055 cocktails, cockatoo distance clustering")
+
+```
+```{r}
+ck_1055_ref <- read.csv("/Users/kaileyferger/Downloads/2QGM-X000008736-dist.csv", header = TRUE, sep = ",")
+t_ck_1055_ref <- t(ck_1055_ref)
+t_ck_1055_ref <- data.frame(cbind(t_ck_1055_ref, row.names(t_ck_1055_ref)))
+t_ck_1055_ref$X1 <- round(as.numeric(as.character(t_ck_1055_ref$X1)), 3)
+```
+```{r}
+mat_1055_ref <- as.matrix(t_ck_1055_ref)
+dend_1055_ref <- dist(mat_1055_ref[,1]) %>% hclust() %>% as.dendrogram() 
+order_dend_1055_ref <- order.dendrogram(dend_1055_ref)
+col_dend_1055_ref <- color_branches(dend_1055_ref, k = 5)
+```
+```{r}
+t_ck_1055_ref_reorder <- t_ck_1055_ref[order_dend_1055_ref, ]
+t_ck_1055_ref_reorder <- as.data.frame(t_ck_1055_ref_reorder)
+sim_ck_1055_ref <- 1-t_ck_1055_ref_reorder$X1
+sim_ck_1055_ref <- data.frame(cbind(sim_ck_1055_ref, row.names(t_ck_1055_ref)))
+colnames(sim_ck_1055_ref) <- c("distances", "names")
+attach(sim_ck_1055_ref)
+```
+```{r}
+ref_1055_bar <- ggplot(sim_ck_1055_ref, aes(names, as.numeric(as.character(distances)))) + geom_col(fill = "#CC3399") + scale_x_discrete(limits = names) + scale_y_continuous(breaks = seq(0,1,0.1)) + theme(axis.text.x = element_text(angle = 90, size = 8)) + xlab("cocktails") + ylab("distance") + theme(plot.margin = unit(c(-1, -1,1,-4), "cm"))
+
+ggdend <- ggdendrogram(col_dend_1055_ref, segments = TRUE, labels = FALSE, leaf_labels = FALSE, theme_dendro = TRUE)
+#plot(ggdend)
+
+comb_fig <- ggpubr::ggarrange(ggdend, ref_1055_bar, heights = c(3,5), align = "v", nrow = 2, ncol = 1)
+annotate_figure(comb_fig, top = text_grob("Sample 1055 cocktails"))
+```
+

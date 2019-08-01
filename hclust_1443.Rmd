@@ -1,0 +1,151 @@
+---
+title: "hclust_1443"
+author: "Kailey Ferger"
+date: "7/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+s_1443 <- read.csv("/Users/kaileyferger/Downloads/1443.csv", header=TRUE, row.names = 1, sep = ",")
+sub_1443 <- s_1443[1:20, 1:20]
+sub_1443 <- dplyr::na_if(as.vector(sub_1443), "Na")
+xy <- t(combn(colnames(sub_1443), 2))
+sub_edges_1443 <- data.frame(xy, dist=sub_1443[xy])
+#sub_edges_1443 <- cbind(which(!is.na(sub_1443),arr.ind = TRUE),na.omit(as.vector(sub_1443)))
+#sub_edges_1443 <- reshape2::melt(sub_1443, varnames = c('node1', 'node2', 'value'), na.rm = TRUE)
+```
+```{r}
+fp_1443 <- read.csv("/Users/kaileyferger/Downloads/ck1443_fp_dist.csv", header = TRUE, row.names = 1, sep = ",")
+fp_1443 <- dplyr::na_if(as.vector(fp_1443), "Na")
+fpxy <- t(combn(colnames(fp_1443), 2))
+fp_edges_1443 <- data.frame(fpxy, dist=fp_1443[fpxy])
+```
+
+```{r}
+#skip
+stdize = function(x, ...) {(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+stdize(sub_1443, na.rm = T)
+```
+
+```{r}
+#na.omit(sub_1443)
+#scale(sub_1443, center = FALSE, scale = apply(sub_1443, 2, sd, na.rm = TRUE))
+#scale1 <- function(x){(x-mean(x))/(sd(x))}
+scale1 <- vector()
+for (i in 1:nrow(sub_edges_1443)) {
+  val <- as.numeric(as.character(sub_edges_1443$dist[i]))
+  dist <- as.numeric(as.character(sub_edges_1443$dist))
+  scale1 <- c(scale1, (val-mean(dist))/(sd(dist)))
+}
+#sub_1443_sc <- as.data.frame(scale1(as.data.frame(sub_edges_1443$dist)))
+```
+```{r}
+scalefp <- vector()
+for (i in 1:nrow(fp_edges_1443)) {
+  valfp <- as.numeric(as.character(fp_edges_1443$dist[i]))
+  dist <- as.numeric(as.character(fp_edges_1443$dist))
+  scalefp <- c(scalefp, (valfp-mean(dist))/(sd(dist)))
+}
+```
+
+```{r}
+dist_mat <- dist(scale1, method = 'euclidean')
+hclust_avg <- hclust(dist_mat, method = 'average')
+cut_avg <- cutree(hclust_avg, k = 3)
+plot(hclust_avg)
+rect.hclust(hclust_avg , k = 3, border = 2:6)
+```
+```{r}
+fp_dist_mat <- dist(scalefp, method = 'euclidean')
+fp_hclust_avg <- hclust(fp_dist_mat, method = 'average')
+#fp_cut_avg <- cutree(fp_hclust_avg, k = 3)
+plot(fp_hclust_avg)
+rect.hclust(fp_hclust_avg , k = 5, border = 2:6)
+```
+
+```{r}
+avg_dend_obj <- as.dendrogram(hclust_avg)
+avg_col_dend <- color_branches(avg_dend_obj, h = 2)
+plot(avg_col_dend)
+```
+```{r}
+s_1443_cl <- mutate(sub_edges_1443, cluster = cut_avg)
+count(s_1443_cl,cluster)
+```
+```{r}
+ggplot(s_1443_cl, aes(x=dist, y = X1, color = factor(cluster))) + geom_point()
+```
+```{r}
+fp_1374 <- read.csv("/Users/kaileyferger/Downloads/ck1374_fp_dist.csv", row.names = 1, header = TRUE, sep=",")
+
+fp_1374 <- as.matrix(fp_1374, dimnames=list(fp_1374[0,2:ncol(fp_1374)], fp_1374[0,2:ncol(fp_1374)]))
+fp_1374_dist = dist(fp_1374, method = "euclidean")
+fp_1374_clust = hclust(fp_1374_dist, method = "average")
+plot(fp_1374_clust, main = "Sample 1374 cocktails")
+rect.hclust(fp_1374_clust , k = 4, border = 2:6)
+```
+```{r}
+avg_dend_obj <- as.dendrogram(fp_1374_clust)
+avg_col_dend <- color_branches(avg_dend_obj, k = 4)
+plot(avg_col_dend, main = "Sample 1374 cocktails")
+```
+```{r}
+#doesn't work
+fp_dend_labels <- order.dendrogram(avg_dend_obj)
+fp_1374_row <- fp_1374[order(fp_dend_labels, decreasing = TRUE), ]
+fp_1374_fin <- fp_1374_row[, order(fp_dend_labels, decreasing = TRUE)]
+```
+```{r}
+#works
+ck_1374_dist <- read.csv("/Users/kaileyferger/Downloads/X000009477.csv", header = TRUE, row.names = 1, sep = ",")
+ck_1374_reorder <- ck_1374_dist[fp_dend_labels, fp_dend_labels]
+```
+```{r}
+#don't do this one
+ck_1374_mat <- data.matrix(ck_1374_reorder)
+ck_1374_dim <- ncol(ck_1374_mat)
+heatmap(ck_1374_mat, Colv = avg_dend_obj, Rowv = avg_dend_obj)
+
+```
+```{r}
+row_dend <- as.dendrogram(hclust(dist(fp_1374)))
+row_dend <- color_branches(row_dend, k=4)
+Heatmap(ck_1374_mat, name = "distance score", cluster_rows = row_dend, cluster_columns = row_dend, row_dend_reorder = FALSE, column_dend_reorder = FALSE, column_title = "Sample 1374 cocktails")
+```
+```{r}
+ck_1374_ref <- read.csv("/Users/kaileyferger/Downloads/3D3Q-X000009477-dist.csv", header = TRUE, sep = ",")
+t_ck_1374_ref <- t(ck_1374_ref)
+t_ck_1374_ref <- data.frame(cbind(t_ck_1374_ref, row.names(t_ck_1374_ref)))
+t_ck_1374_ref$X1 <- round(as.numeric(as.character(t_ck_1374_ref$X1)), 3)
+ggplot(as.data.frame(t_ck_1374_ref), aes(row.names(t_ck_1374_ref), t_ck_1374_ref$X1, fill = t_ck_1374_ref$X1)) + geom_col() + theme(axis.text.x = element_text(angle = 90)) + xlab("cocktails") + ylab("distance") + ggtitle("Sample 1734 vs PDB reference")
+```
+```{r}
+mat_1374_ref <- as.matrix(t_ck_1374_ref)
+dend_1374_ref <- dist(mat_1374_ref[,1]) %>% hclust() %>% as.dendrogram() 
+order_dend_1374_ref <- order.dendrogram(dend_1374_ref)
+col_dend_1374_ref <- color_branches(dend_1374_ref, k = 4)
+plot(col_dend_1374_ref)
+```
+```{r}
+t_ck_1374_ref_reorder <- t_ck_1374_ref[order_dend_1374_ref, ]
+t_ck_1374_ref_reorder <- as.data.frame(t_ck_1374_ref_reorder)
+
+colnames(t_ck_1374_ref_reorder) <- c("distances", "names")
+attach(t_ck_1374_ref_reorder)
+
+ref_1374_bar <- ggplot(t_ck_1374_ref_reorder, aes(names, distances)) + geom_col(fill = "#9999FF") + scale_x_discrete(limits = names) + theme(axis.text.x = element_text(angle = 90, size = 8)) + xlab("cocktails") + ylab("distance") + theme(plot.margin = unit(c(-1, -1,1,-1), "cm"))
+ggdend <- ggdendrogram(col_dend_1374_ref, segments = TRUE, labels = FALSE, leaf_labels = FALSE, theme_dendro = TRUE)
+#plot(ggdend)
+comb_fig <- ggpubr::ggarrange(ggdend, ref_1374_bar, heights = c(3,5), align = "v", nrow = 2, ncol = 1)
+annotate_figure(comb_fig, top = text_grob("Sample 1374 cocktails"))
+```
+```{r}
+ref_1374_bar
+```
+
+
